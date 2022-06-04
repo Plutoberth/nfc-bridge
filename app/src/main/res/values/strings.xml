@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">NFC Bridge</string>
+    <string name="servicedesc">NFC Bridge HCE Service</string>
+    <string name="aiddescription">Rav-Kav AID</string>
 </resources>
