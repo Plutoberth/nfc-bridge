@@ -14,7 +14,7 @@
         <TextView
             android:id="@+id/nfcLog"
             android:layout_width="match_parent"
-            android:layout_height="593dp" />
+            android:layout_height="562dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -39,13 +39,27 @@
 
         </LinearLayout>
 
-        <Switch
-            android:id="@+id/hceSwitch"
-            android:layout_width="126dp"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:text="HCE"
-            android:textSize="24sp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <Switch
+                android:id="@+id/hceSwitch"
+                android:layout_width="126dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:text="HCE"
+                android:textSize="24sp" />
+
+            <Button
+                android:id="@+id/connectWebsocketButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Connect"
+                android:textSize="16sp" />
+        </LinearLayout>
 
     </LinearLayout>
 

@@ -8,6 +8,7 @@ import android.nfc.TagLostException
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.util.Log
+import android.widget.Button
 import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +18,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     private var nfcTextView: TextView? = null
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private var hceSwitch: Switch? = null
+    private var connectButton: Button? = null
     private var card: IsoDep? = null
 
     private val serverUrl = "wss://6946-85-65-157-57.eu.ngrok.io"
@@ -32,6 +34,12 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         setContentView(R.layout.activity_main)
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         nfcTextView = findViewById(R.id.nfcLog)
+        connectButton = findViewById(R.id.connectWebsocketButton)
+
+        connectButton!!.setOnClickListener {
+            WebSocketManager.connect()
+        }
+
         hceSwitch = findViewById(R.id.hceSwitch)
         hceSwitch!!.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
@@ -112,7 +120,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         val messageraw = text.fromHex();
 
         if (isHCE()) {
-
+            HCEQueue.add(messageraw)
         } else {
             if (this.card == null) {
                 this.log("Websockets", "No card available")

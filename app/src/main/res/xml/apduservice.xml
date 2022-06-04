@@ -4,6 +4,11 @@
     android:requireDeviceUnlock="false">
     <aid-group android:description="@string/aiddescription"
         android:category="other">
-        <aid-filter android:name="A0000002471001"/>
+        <!--from random rav-kav paper-->
+        <aid-filter android:name="63646300000000323231"/>
+        <!--3MTR.ICA, from my card-->
+        <aid-filter android:name="334d54522e494341"/>
+        <!--1TIC.ICA-->
+        <aid-filter android:name="315449432e494341"/>
     </aid-group>
 </host-apdu-service>

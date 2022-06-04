@@ -1,10 +1,13 @@
 package app.nir.nfcbridge
 
+import WebSocketManager
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
+import android.widget.TextView
+import java.util.concurrent.ConcurrentLinkedQueue
 
-
+val HCEQueue =  ConcurrentLinkedQueue<ByteArray>()
 
 class HostCardEmulatorService: HostApduService() {
     companion object {
@@ -32,6 +35,21 @@ class HostCardEmulatorService: HostApduService() {
         val commandApduHex = commandApdu.toHex()
         Log.d("Bridge/HCE", "Sending $commandApduHex")
         WebSocketManager.sendMessage(commandApduHex)
-        return STATUS_FAILED
+        Log.d("Bridge/HCE", "Waiting for a response")
+
+        val start = System.currentTimeMillis()
+        val end = start + 2500
+        while (true) {
+            val resp = HCEQueue.poll()
+
+            if (resp != null) {
+                return resp
+            }
+
+            if (System.currentTimeMillis() > end) {
+                Log.d("Bridge/HCE", "No response from websocket, aborting")
+                return STATUS_FAILED
+            }
+        }
     }
 }
