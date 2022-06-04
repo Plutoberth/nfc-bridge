@@ -4,6 +4,7 @@ import MessageListener
 import android.annotation.SuppressLint
 import android.nfc.NfcAdapter
 import android.nfc.Tag
+import android.nfc.TagLostException
 import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.util.Log
@@ -32,7 +33,33 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         nfcTextView = findViewById(R.id.nfcLog)
         hostSwitch = findViewById(R.id.hostSwitch)
+        hostSwitch!!.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                disableNfcReader()
+            } else {
+                enableNfcReader()
+            }
+        }
+
         WebSocketManager.init(serverUrl, this)
+        WebSocketManager.connect()
+    }
+
+
+    fun enableNfcReader() {
+        nfcAdapter!!.enableReaderMode(this, this,
+            NfcAdapter.FLAG_READER_NFC_A or
+                    NfcAdapter.FLAG_READER_NFC_B or
+                    NfcAdapter.FLAG_READER_NFC_F or
+                    NfcAdapter.FLAG_READER_NFC_V or
+                    NfcAdapter.FLAG_READER_NFC_BARCODE or
+                    NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+            null)
+    }
+
+    fun disableNfcReader() {
+        nfcAdapter!!.disableReaderMode(this)
+
     }
 
     override fun onResume() {
@@ -40,59 +67,45 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         // if we're not on host mode
         if (!this.hostSwitch!!.isChecked)
         {
-            nfcAdapter!!.enableReaderMode(this, this,
-                NfcAdapter.FLAG_READER_NFC_A or
-                        NfcAdapter.FLAG_READER_NFC_B or
-                        NfcAdapter.FLAG_READER_NFC_F or
-                        NfcAdapter.FLAG_READER_NFC_V or
-                        NfcAdapter.FLAG_READER_NFC_BARCODE or
-                        NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
-                null)
+            enableNfcReader()
         }
     }
 
     override fun onPause() {
         super.onPause()
-        nfcAdapter!!.disableReaderMode(this)
+        disableNfcReader()
     }
 
     override fun onTagDiscovered(tag: Tag?) {
-        runOnUiThread {
-            nfcTextView?.append("Card Connected!")
-        }
+        this.log("NFC" , "Tag Discovered")
 
-        Log.d("SELECT Command", (SELECT + BALANCE_FILE).toHex())
-        Log.d("READ Command", READ_RECORD.toHex())
+        this.log("NFC", "SELECT + Balance: " + (SELECT + BALANCE_FILE).toHex())
+        this.log("NFC", "Read: " + READ_RECORD.toHex())
 
         val isoDep = IsoDep.get(tag)
         isoDep.connect()
         card = isoDep
 
-        val response = isoDep.transceive(SELECT + BALANCE_FILE)
-
-        Log.d("Card SELECT Response", response.toHex())
-
-        val readResp = isoDep.transceive(READ_RECORD)
-        Log.d("Card READ Response", readResp.toHex())
-
-        runOnUiThread { nfcTextView?.append("\nRead: "
-                + readResp.toHex()) }
-
-
-
-        isoDep.close()
+//        val response = isoDep.transceive(SELECT + BALANCE_FILE)
+//
+//        this.log("Card SELECT Response", response.toHex())
+//
+//        val readResp = isoDep.transceive(READ_RECORD)
+//        this.log("Card READ Response", readResp.toHex())
+//
+//        isoDep.close()
     }
 
     override fun onConnectSuccess() {
-        Log.d("Websockets", "Connected")
+        this.log("Websockets", "Connected")
     }
 
     override fun onConnectFailed() {
-        Log.d("Websockets", "Connection Failed")
+        this.log("Websockets", "Connection Failed")
     }
 
     override fun onClose() {
-        Log.d("Websockets", "Connection Closed")
+        this.log("Websockets", "Connection Closed")
     }
 
     override fun onMessage(text: String?) {
@@ -101,17 +114,33 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
             return
         }
 
-        Log.d("Websockets", "received $text")
+        this.log("Websockets", "received $text")
         val messageraw = text.fromHex();
 
         if (this.card == null) {
-            Log.d("Websockets", "No card available")
+            this.log("Websockets", "No card available")
             return
         }
 
-        val resp = this.card!!.transceive(messageraw)
+        val resp: ByteArray;
+        try {
+            resp = this.card!!.transceive(messageraw)
+        } catch (e: TagLostException) {
+            // Failure
+            WebSocketManager.sendMessage("6F00")
+            this.log("NFC", "Connection Lost")
+            card = null;
+            return
+        }
         val respHex = resp.toHex()
-        Log.d("Websockets", "Response from card: $respHex")
+        this.log("NFC", "Response from card: $respHex")
         WebSocketManager.sendMessage(respHex)
+    }
+
+    fun log(tag: String, text: String) {
+        Log.d("Bridge/$tag", text)
+        runOnUiThread {
+            nfcTextView?.append("$tag: $text\n")
+        }
     }
 }

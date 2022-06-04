@@ -3,6 +3,10 @@ import okhttp3.*
 import okio.ByteString
 import  java.util.concurrent.TimeUnit
 
+/*
+From https://camposha.info/android-examples/android-websocket/#gsc.tab=0
+ */
+
 interface MessageListener {
     fun  onConnectSuccess () // successfully connected
     fun  onConnectFailed () // connection failed
