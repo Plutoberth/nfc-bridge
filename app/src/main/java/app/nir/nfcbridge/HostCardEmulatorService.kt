@@ -25,7 +25,13 @@ class HostCardEmulatorService: HostApduService() {
 
     override fun processCommandApdu(commandApdu: ByteArray?,
                                     extras: Bundle?): ByteArray {
-
+        if (commandApdu == null) {
+            Log.d("Bridge/HCE", "wtf, commandApdu is null")
+            return STATUS_FAILED
+        }
+        val commandApduHex = commandApdu.toHex()
+        Log.d("Bridge/HCE", "Sending $commandApduHex")
+        WebSocketManager.sendMessage(commandApduHex)
         return STATUS_FAILED
     }
 }

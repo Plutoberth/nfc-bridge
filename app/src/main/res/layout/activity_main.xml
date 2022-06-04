@@ -40,11 +40,11 @@
         </LinearLayout>
 
         <Switch
-            android:id="@+id/hostSwitch"
+            android:id="@+id/hceSwitch"
             android:layout_width="126dp"
-            android:layout_height="49dp"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:text="Host"
+            android:text="HCE"
             android:textSize="24sp" />
 
     </LinearLayout>
