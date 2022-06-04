@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     }
 
 
-    fun enableNfcReader() {
+    private fun enableNfcReader() {
         nfcAdapter!!.enableReaderMode(this, this,
             NfcAdapter.FLAG_READER_NFC_A or
                     NfcAdapter.FLAG_READER_NFC_B or
@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
             null)
     }
 
-    fun disableNfcReader() {
+    private fun disableNfcReader() {
         nfcAdapter!!.disableReaderMode(this)
 
     }
