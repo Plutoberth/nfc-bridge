@@ -9,6 +9,7 @@ import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.EditText
 import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -16,12 +17,13 @@ import androidx.appcompat.app.AppCompatActivity
 class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageListener {
     private var nfcAdapter: NfcAdapter? = null
     private var nfcTextView: TextView? = null
+    private var ngrokEndpointTextBox: EditText? = null
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private var hceSwitch: Switch? = null
     private var connectButton: Button? = null
     private var card: IsoDep? = null
 
-    private val serverUrl = "wss://6946-85-65-157-57.eu.ngrok.io"
+    private val DEFAULT_NGROK_ENDPOINT = "3620-85-65-157-57";
 
     companion object APDU_COMMANDS {
         val SELECT = packApduCommand(0x94, 0xa4, 0, 0  , "02".fromHex())
@@ -34,10 +36,11 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         setContentView(R.layout.activity_main)
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         nfcTextView = findViewById(R.id.nfcLog)
-        connectButton = findViewById(R.id.connectWebsocketButton)
+        ngrokEndpointTextBox = findViewById(R.id.ngrokEndpointTextBox)
 
+        connectButton = findViewById(R.id.connectWebsocketButton)
         connectButton!!.setOnClickListener {
-            WebSocketManager.connect()
+            connectWebsocket()
         }
 
         hceSwitch = findViewById(R.id.hceSwitch)
@@ -49,7 +52,14 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
             }
         }
 
-        WebSocketManager.init(serverUrl, this)
+        ngrokEndpointTextBox!!.setText(DEFAULT_NGROK_ENDPOINT)
+        this.connectWebsocket()
+    }
+
+    private fun connectWebsocket() {
+        val server =  "wss://${ngrokEndpointTextBox!!.text}.eu.ngrok.io"
+        WebSocketManager.init(server, this)
+        WebSocketManager.close()
         WebSocketManager.connect()
     }
 

@@ -22,8 +22,8 @@
             android:orientation="horizontal">
 
             <EditText
-                android:id="@+id/editTextTextPersonName"
-                android:layout_width="291dp"
+                android:id="@+id/ngrokEndpointTextBox"
+                android:layout_width="258dp"
                 android:layout_height="45dp"
                 android:ems="10"
                 android:hint="ngrok endpoint"
@@ -34,7 +34,7 @@
                 android:id="@+id/textView2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=".ngrok.io"
+                android:text=".eu.ngrok.io"
                 android:textSize="24sp" />
 
         </LinearLayout>
