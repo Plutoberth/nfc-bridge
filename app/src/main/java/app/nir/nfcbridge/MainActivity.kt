@@ -9,10 +9,7 @@ import android.nfc.tech.IsoDep
 import android.os.Bundle
 import android.text.method.ScrollingMovementMethod
 import android.util.Log
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Switch
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageListener {
@@ -22,6 +19,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private var hceSwitch: Switch? = null
     private var connectButton: Button? = null
+    private var cardDetectedCheckBox: CheckBox? = null
     private var card: IsoDep? = null
 
     private val DEFAULT_IP_ADDR = "85.65.157.57";
@@ -54,6 +52,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
             }
         }
 
+        cardDetectedCheckBox = findViewById(R.id.cardDetectedCheckbox)
         ipAddrTextBox!!.setText(DEFAULT_IP_ADDR)
         this.connectWebsocket()
     }
@@ -78,11 +77,14 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
                     NfcAdapter.FLAG_READER_NFC_BARCODE or
                     NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
             null)
+        cardDetectedCheckBox!!.isEnabled = true
     }
 
     private fun disableNfcReader() {
         nfcAdapter!!.disableReaderMode(this)
-
+        card = null
+        cardDetectedCheckBox!!.isChecked = false
+        cardDetectedCheckBox!!.isEnabled = false
     }
 
     override fun onResume() {
@@ -102,12 +104,10 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     override fun onTagDiscovered(tag: Tag?) {
         this.log("NFC" , "Tag Discovered")
 
-        this.log("NFC", "SELECT + Balance: " + (SELECT + BALANCE_FILE).toHex())
-        this.log("NFC", "Read: " + READ_RECORD.toHex())
-
         val isoDep = IsoDep.get(tag)
         isoDep.connect()
         card = isoDep
+        cardDetectedCheckBox!!.isChecked = true
     }
 
     override fun onConnectSuccess() {
@@ -147,6 +147,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
                 WebSocketManager.sendMessage("6F00")
                 this.log("NFC", "Connection Lost")
                 card = null;
+                cardDetectedCheckBox!!.isChecked = true
                 return
             }
             val respHex = resp.toHex()

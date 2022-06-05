@@ -14,7 +14,7 @@
         <TextView
             android:id="@+id/nfcLog"
             android:layout_width="match_parent"
-            android:layout_height="562dp"
+            android:layout_height="517dp"
             android:scrollIndicators="right"
             android:scrollbars="vertical" />
 
@@ -25,24 +25,26 @@
 
             <EditText
                 android:id="@+id/serverIP"
-                android:layout_width="258dp"
-                android:layout_height="45dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:ems="10"
                 android:hint="Server IP"
                 android:inputType="textPersonName"
-                android:minHeight="48dp" />
+                android:minHeight="48dp"
+                android:text="ERROR"
+                android:textSize="24sp" />
 
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <Switch
                 android:id="@+id/hceSwitch"
                 android:layout_width="126dp"
-                android:layout_height="0dp"
+                android:layout_height="52dp"
                 android:layout_weight="1"
                 android:text="HCE"
                 android:textSize="24sp" />
@@ -54,7 +56,17 @@
                 android:layout_weight="1"
                 android:text="Connect"
                 android:textSize="16sp" />
+
         </LinearLayout>
+
+        <CheckBox
+            android:id="@+id/cardDetectedCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clickable="false"
+            android:text="Card Detected"
+            android:textSize="24sp" />
 
     </LinearLayout>
 
