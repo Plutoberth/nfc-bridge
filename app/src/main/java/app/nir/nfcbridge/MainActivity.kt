@@ -7,6 +7,7 @@ import android.nfc.Tag
 import android.nfc.TagLostException
 import android.nfc.tech.IsoDep
 import android.os.Bundle
+import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
@@ -17,13 +18,13 @@ import androidx.appcompat.app.AppCompatActivity
 class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageListener {
     private var nfcAdapter: NfcAdapter? = null
     private var nfcTextView: TextView? = null
-    private var ngrokEndpointTextBox: EditText? = null
+    private var ipAddrTextBox: EditText? = null
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private var hceSwitch: Switch? = null
     private var connectButton: Button? = null
     private var card: IsoDep? = null
 
-    private val DEFAULT_NGROK_ENDPOINT = "3620-85-65-157-57";
+    private val DEFAULT_IP_ADDR = "85.65.157.57";
 
     companion object APDU_COMMANDS {
         val SELECT = packApduCommand(0x94, 0xa4, 0, 0  , "02".fromHex())
@@ -36,7 +37,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         setContentView(R.layout.activity_main)
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         nfcTextView = findViewById(R.id.nfcLog)
-        ngrokEndpointTextBox = findViewById(R.id.ngrokEndpointTextBox)
+        nfcTextView!!.movementMethod = ScrollingMovementMethod()
+        ipAddrTextBox = findViewById(R.id.serverIP)
 
         connectButton = findViewById(R.id.connectWebsocketButton)
         connectButton!!.setOnClickListener {
@@ -52,12 +54,12 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
             }
         }
 
-        ngrokEndpointTextBox!!.setText(DEFAULT_NGROK_ENDPOINT)
+        ipAddrTextBox!!.setText(DEFAULT_IP_ADDR)
         this.connectWebsocket()
     }
 
     private fun connectWebsocket() {
-        val server =  "wss://${ngrokEndpointTextBox!!.text}.eu.ngrok.io"
+        val server =  "ws://${ipAddrTextBox!!.text}:8765"
         WebSocketManager.init(server, this)
         WebSocketManager.close()
         WebSocketManager.connect()

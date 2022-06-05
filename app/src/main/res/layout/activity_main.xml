@@ -14,7 +14,9 @@
         <TextView
             android:id="@+id/nfcLog"
             android:layout_width="match_parent"
-            android:layout_height="562dp" />
+            android:layout_height="562dp"
+            android:scrollIndicators="right"
+            android:scrollbars="vertical" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -22,20 +24,13 @@
             android:orientation="horizontal">
 
             <EditText
-                android:id="@+id/ngrokEndpointTextBox"
+                android:id="@+id/serverIP"
                 android:layout_width="258dp"
                 android:layout_height="45dp"
                 android:ems="10"
-                android:hint="ngrok endpoint"
+                android:hint="Server IP"
                 android:inputType="textPersonName"
                 android:minHeight="48dp" />
-
-            <TextView
-                android:id="@+id/textView2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=".eu.ngrok.io"
-                android:textSize="24sp" />
 
         </LinearLayout>
 
