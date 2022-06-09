@@ -19,7 +19,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private var hceSwitch: Switch? = null
     private var connectButton: Button? = null
-    private var cardDetectedCheckBox: CheckBox? = null
+    private var cardDetectedCheckbox: CheckBox? = null
+    private var peerConnectedCheckbox: CheckBox? = null
     private var card: IsoDep? = null
 
     private val DEFAULT_IP_ADDR = "85.65.157.57";
@@ -52,9 +53,9 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
             }
         }
 
-        cardDetectedCheckBox = findViewById(R.id.cardDetectedCheckbox)
+        cardDetectedCheckbox = findViewById(R.id.cardDetectedCheckbox)
+        peerConnectedCheckbox = findViewById(R.id.peerConnectedCheckbox)
         ipAddrTextBox!!.setText(DEFAULT_IP_ADDR)
-        this.connectWebsocket()
     }
 
     private fun connectWebsocket() {
@@ -77,14 +78,14 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
                     NfcAdapter.FLAG_READER_NFC_BARCODE or
                     NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
             null)
-        cardDetectedCheckBox!!.isEnabled = true
+        cardDetectedCheckbox!!.isEnabled = true
     }
 
     private fun disableNfcReader() {
         nfcAdapter!!.disableReaderMode(this)
         card = null
-        cardDetectedCheckBox!!.isChecked = false
-        cardDetectedCheckBox!!.isEnabled = false
+        cardDetectedCheckbox!!.isChecked = false
+        cardDetectedCheckbox!!.isEnabled = false
     }
 
     override fun onResume() {
@@ -102,16 +103,20 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     }
 
     override fun onTagDiscovered(tag: Tag?) {
-        this.log("NFC" , "Tag Discovered")
+        this.log("NFC", "Tag Discovered")
 
         val isoDep = IsoDep.get(tag)
         isoDep.connect()
         card = isoDep
-        cardDetectedCheckBox!!.isChecked = true
+        cardDetectedCheckbox!!.isChecked = true
+
+        val message = WebsocketCommand(CommandType.CARD_DETECTED, "")
+        WebSocketManager.sendMessage(message.encode())
     }
 
     override fun onConnectSuccess() {
         this.log("Websockets", "Connected")
+        WebSocketManager.sendMessage(WebsocketCommand(CommandType.PING, "").encode())
     }
 
     override fun onConnectFailed() {
@@ -128,31 +133,63 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
             return
         }
 
-        this.log("Websockets", "received $text")
+        val cmd = decodeWebsocketCommand(text)
+
+        this.log("Websockets", "received command ${cmd.type}, data: ${cmd.data}")
         val messageraw = text.fromHex();
 
-        if (isHCE()) {
-            HCEQueue.add(messageraw)
-        } else {
-            if (this.card == null) {
-                this.log("Websockets", "No card available")
-                return
+        when (cmd.type) {
+            CommandType.PING -> {
             }
+            CommandType.CARD_DETECTED -> {
+                if (isHCE()) {
+                    cardDetectedCheckbox!!.isChecked = true
+                } else {
+                    this.log("Protocol", "both peers are cardholders")
+                }
+            }
+            CommandType.CARD_LOST -> {
+                if (isHCE()) {
+                    cardDetectedCheckbox!!.isChecked = false
+                } else {
+                    this.log("Protocol", "both peers are cardholders")
+                }
+            }
+            CommandType.HCE_REQUEST -> {
+                if (isHCE()) {
+                    this.log("Protocol", "both peers are card emulators")
+                } else {
+                    if (this.card == null) {
+                        this.log("Websockets", "No card available")
+                        return
+                    }
 
-            val resp: ByteArray;
-            try {
-                resp = this.card!!.transceive(messageraw)
-            } catch (e: TagLostException) {
-                // Failure
-                WebSocketManager.sendMessage("6F00")
-                this.log("NFC", "Connection Lost")
-                card = null;
-                cardDetectedCheckBox!!.isChecked = true
-                return
+                    val resp: ByteArray;
+                    try {
+                        resp = this.card!!.transceive(messageraw)
+                    } catch (e: TagLostException) {
+                        // Failure
+                        val resp = WebsocketCommand(CommandType.CARD_LOST, "")
+                        WebSocketManager.sendMessage(resp.encode())
+                        this.log("NFC", "Connection Lost")
+                        card = null;
+                        cardDetectedCheckbox!!.isChecked = true
+                        return
+                    }
+                    val respHex = resp.toHex()
+                    this.log("NFC", "Response from card: $respHex")
+
+                    val respObj = WebsocketCommand(CommandType.CARD_RESPONSE, respHex)
+                    WebSocketManager.sendMessage(respObj.encode())
+                }
             }
-            val respHex = resp.toHex()
-            this.log("NFC", "Response from card: $respHex")
-            WebSocketManager.sendMessage(respHex)
+            CommandType.CARD_RESPONSE -> {
+                if (isHCE()) {
+                    HCEQueue.add(messageraw)
+                } else {
+                    this.log("Protocol", "both peers are cardholders")
+                }
+            }
         }
     }
 

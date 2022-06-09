@@ -25,7 +25,7 @@
 
             <EditText
                 android:id="@+id/serverIP"
-                android:layout_width="match_parent"
+                android:layout_width="267dp"
                 android:layout_height="match_parent"
                 android:ems="10"
                 android:hint="Server IP"
@@ -33,6 +33,14 @@
                 android:minHeight="48dp"
                 android:text="ERROR"
                 android:textSize="24sp" />
+
+            <Button
+                android:id="@+id/connectWebsocketButton"
+                android:layout_width="wrap_content"
+                android:layout_height="67dp"
+                android:layout_weight="1"
+                android:text="Connect"
+                android:textSize="18sp" />
 
         </LinearLayout>
 
@@ -43,19 +51,11 @@
 
             <Switch
                 android:id="@+id/hceSwitch"
-                android:layout_width="126dp"
+                android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:layout_weight="1"
-                android:text="HCE"
+                android:text="Card Emulation"
                 android:textSize="24sp" />
-
-            <Button
-                android:id="@+id/connectWebsocketButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Connect"
-                android:textSize="16sp" />
 
         </LinearLayout>
 
@@ -66,6 +66,15 @@
             android:layout_weight="1"
             android:clickable="false"
             android:text="Card Detected"
+            android:textSize="24sp" />
+
+        <CheckBox
+            android:id="@+id/peerConnectedCheckbox"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clickable="false"
+            android:text="Peer Connected"
             android:textSize="24sp" />
 
     </LinearLayout>
