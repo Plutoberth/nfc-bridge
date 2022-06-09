@@ -14,7 +14,7 @@
         <TextView
             android:id="@+id/nfcLog"
             android:layout_width="match_parent"
-            android:layout_height="517dp"
+            android:layout_height="468dp"
             android:scrollIndicators="right"
             android:scrollbars="vertical" />
 
@@ -60,12 +60,12 @@
         </LinearLayout>
 
         <CheckBox
-            android:id="@+id/cardDetectedCheckbox"
-            android:layout_width="wrap_content"
+            android:id="@+id/serverConnectedCheckbox"
+            android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
             android:clickable="false"
-            android:text="Card Detected"
+            android:text="Server Connected"
             android:textSize="24sp" />
 
         <CheckBox
@@ -74,7 +74,17 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:clickable="false"
+            android:enabled="false"
             android:text="Peer Connected"
+            android:textSize="24sp" />
+
+        <CheckBox
+            android:id="@+id/cardDetectedCheckbox"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clickable="false"
+            android:text="Card Detected"
             android:textSize="24sp" />
 
     </LinearLayout>

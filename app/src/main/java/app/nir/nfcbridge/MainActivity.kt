@@ -21,6 +21,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     private var connectButton: Button? = null
     private var cardDetectedCheckbox: CheckBox? = null
     private var peerConnectedCheckbox: CheckBox? = null
+    private var serverConnectedCheckbox: CheckBox? = null
     private var card: IsoDep? = null
 
     private val DEFAULT_IP_ADDR = "85.65.157.57";
@@ -55,7 +56,37 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
 
         cardDetectedCheckbox = findViewById(R.id.cardDetectedCheckbox)
         peerConnectedCheckbox = findViewById(R.id.peerConnectedCheckbox)
+        serverConnectedCheckbox = findViewById(R.id.serverConnectedCheckbox)
         ipAddrTextBox!!.setText(DEFAULT_IP_ADDR)
+
+        connectWebsocket()
+    }
+
+    private fun checkServerConnected() {
+        runOnUiThread {
+            serverConnectedCheckbox!!.isChecked = true
+            peerConnectedCheckbox!!.isEnabled = true
+        }
+    }
+
+    private fun uncheckServerConnected() {
+        runOnUiThread {
+            serverConnectedCheckbox!!.isChecked = false
+            peerConnectedCheckbox!!.isEnabled = false
+            uncheckPeerConnected()
+        }
+    }
+
+    private fun checkPeerConnected() {
+        runOnUiThread {
+            peerConnectedCheckbox!!.isChecked = true
+        }
+    }
+
+    private fun uncheckPeerConnected() {
+        runOnUiThread {
+            peerConnectedCheckbox!!.isChecked = false
+        }
     }
 
     private fun connectWebsocket() {
@@ -116,15 +147,18 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
 
     override fun onConnectSuccess() {
         this.log("Websockets", "Connected")
-        WebSocketManager.sendMessage(WebsocketCommand(CommandType.PING, "").encode())
+        //WebSocketManager.sendMessage(WebsocketCommand(CommandType.PING, "").encode())
+        checkServerConnected()
     }
 
     override fun onConnectFailed() {
         this.log("Websockets", "Connection Failed")
+        uncheckServerConnected()
     }
 
     override fun onClose() {
         this.log("Websockets", "Connection Closed")
+        uncheckServerConnected()
     }
 
     override fun onMessage(text: String?) {
