@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     }
 
     private fun connectWebsocket() {
-        val server =  "ws://${ipAddrTextBox.text}:8765"
+        val server = "ws://${ipAddrTextBox.text}:8765"
         WebSocketManager.init(server, this)
         WebSocketManager.close()
         WebSocketManager.connect()
@@ -102,14 +102,16 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     }
 
     private fun enableNfcReader() {
-        nfcAdapter.enableReaderMode(this, this,
+        nfcAdapter.enableReaderMode(
+            this, this,
             NfcAdapter.FLAG_READER_NFC_A or
                     NfcAdapter.FLAG_READER_NFC_B or
                     NfcAdapter.FLAG_READER_NFC_F or
                     NfcAdapter.FLAG_READER_NFC_V or
                     NfcAdapter.FLAG_READER_NFC_BARCODE or
                     NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
-            null)
+            null
+        )
         cardDetectedCheckbox.isEnabled = true
     }
 
@@ -123,8 +125,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     override fun onResume() {
         super.onResume()
         // if we're not on host mode
-        if (!isHCE())
-        {
+        if (!isHCE()) {
             enableNfcReader()
         }
     }

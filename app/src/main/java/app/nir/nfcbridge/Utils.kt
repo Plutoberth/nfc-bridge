@@ -10,8 +10,8 @@ fun ByteBuffer.toArray(): ByteArray {
     return bytesArray
 }
 
-fun ByteArray.toHex(): String = joinToString(separator = "") {
-        byte -> "%02x".format(byte)
+fun ByteArray.toHex(): String = joinToString(separator = "") { byte ->
+    "%02x".format(byte)
 }
 
 

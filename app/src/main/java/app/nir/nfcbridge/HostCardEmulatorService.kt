@@ -5,9 +5,9 @@ import android.os.Bundle
 import android.util.Log
 import java.util.concurrent.ConcurrentLinkedQueue
 
-val HCEQueue =  ConcurrentLinkedQueue<ByteArray>()
+val HCEQueue = ConcurrentLinkedQueue<ByteArray>()
 
-class HostCardEmulatorService: HostApduService() {
+class HostCardEmulatorService : HostApduService() {
     private val TAG = "Bridge/HCE"
     private val STATUS_FAILED = "6F00".fromHex()
     private val HCE_TIMEOUT_MILLIS = 2000
@@ -16,8 +16,10 @@ class HostCardEmulatorService: HostApduService() {
         Log.d(TAG, "Deactivated: $reason")
     }
 
-    override fun processCommandApdu(commandApdu: ByteArray?,
-                                    extras: Bundle?): ByteArray {
+    override fun processCommandApdu(
+        commandApdu: ByteArray?,
+        extras: Bundle?
+    ): ByteArray {
         if (commandApdu == null) {
             Log.d(TAG, "commandApdu is null")
             return STATUS_FAILED
