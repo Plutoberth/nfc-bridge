@@ -2,6 +2,7 @@ package app.nir.nfcbridge
 
 enum class CommandType {
     PING,
+    PONG,
     CARD_DETECTED,
     CARD_LOST,
     HCE_REQUEST,

@@ -52,7 +52,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/hceSwitch"
                 android:layout_width="0dp"
                 android:layout_height="52dp"

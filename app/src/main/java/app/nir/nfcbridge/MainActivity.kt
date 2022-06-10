@@ -11,6 +11,7 @@ import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 
 class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageListener {
     private lateinit var nfcAdapter: NfcAdapter
@@ -19,9 +20,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     private lateinit var nfcTextView: TextView
     private lateinit var ipAddrTextBox: EditText
     private lateinit var sessionIdTextBox: EditText
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
     private lateinit var connectButton: Button
-    private lateinit var hceSwitch: Switch
+    private lateinit var hceSwitch: SwitchCompat
     private lateinit var cardDetectedCheckbox: CheckBox
     private lateinit var peerConnectedCheckbox: CheckBox
     private lateinit var serverConnectedCheckbox: CheckBox
@@ -151,7 +151,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         val sessionId = sessionIdTextBox.text.toString()
         this.log("Websockets", "Connected - sending session id $sessionId")
         WebSocketManager.sendMessage(sessionId)
-        //WebSocketManager.sendMessage(WebsocketCommand(CommandType.PING, "").encode())
+        WebSocketManager.sendMessage(WebsocketCommand(CommandType.PING, "").encode())
         checkServerConnected()
     }
 
@@ -178,6 +178,12 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
 
         when (cmd.type) {
             CommandType.PING -> {
+                val pong = WebsocketCommand(CommandType.PONG, "")
+                WebSocketManager.sendMessage(pong.encode())
+                checkPeerConnected()
+            }
+            CommandType.PONG -> {
+                checkPeerConnected()
             }
             CommandType.CARD_DETECTED -> {
                 if (isHCE()) {
