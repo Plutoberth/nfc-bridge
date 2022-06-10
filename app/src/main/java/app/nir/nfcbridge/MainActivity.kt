@@ -1,7 +1,5 @@
 package app.nir.nfcbridge
 
-import MessageListener
-import android.annotation.SuppressLint
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.TagLostException
@@ -27,13 +25,14 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     private lateinit var serverConnectedCheckbox: CheckBox
 
 
-    private val DEFAULT_IP_ADDR = "85.65.157.57";
+    private val DEFAULT_IP_ADDR = "85.65.157.57"
 
-    companion object APDU_COMMANDS {
-        val SELECT = packApduCommand(0x94, 0xa4, 0, 0  , "02".fromHex())
-        val BALANCE_FILE = "202B00".fromHex()
-        val READ_RECORD = packApduCommand(0x94, 0xb2, 0x01, 0x04, "1D".fromHex())
-    }
+    // Some nice APDU commands for testing
+    //    companion object APDU_COMMANDS {
+    //        val SELECT = packApduCommand(0x94, 0xa4, 0, 0  , "02".fromHex())
+    //        val BALANCE_FILE = "202B00".fromHex()
+    //        val READ_RECORD = packApduCommand(0x94, 0xb2, 0x01, 0x04, "1D".fromHex())
+    //    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -237,7 +236,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         }
     }
 
-    fun log(tag: String, text: String) {
+    private fun log(tag: String, text: String) {
         Log.d("Bridge/$tag", text)
         runOnUiThread {
             nfcTextView.append("$tag: $text\n")

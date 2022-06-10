@@ -1,3 +1,5 @@
+package app.nir.nfcbridge
+
 import  android.util.Log
 import okhttp3.*
 import okio.ByteString
@@ -67,7 +69,7 @@ object  WebSocketManager {
     }
 
     /**
-     * Whether to connect
+     * Whether it's connected
      */
     fun isConnect(): Boolean {
         return isConnect

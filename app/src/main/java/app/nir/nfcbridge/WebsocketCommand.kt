@@ -16,7 +16,7 @@ enum class PING_DEV_TYPE {
 
 class WebsocketCommand(val type: CommandType, val data: String) {
     fun encode(): String {
-        val cmd = type.ordinal;
+        val cmd = type.ordinal
         return "$cmd:$data"
     }
 }
