@@ -92,9 +92,9 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
 
     private fun connectWebsocket() {
         val server = "ws://${ipAddrTextBox.text}:8765"
-        WebSocketManager.init(server, this)
-        WebSocketManager.close()
-        WebSocketManager.connect()
+        Websocket.init(server, this)
+        Websocket.close()
+        Websocket.connect()
     }
 
     private fun isHCE(): Boolean {
@@ -144,14 +144,14 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         cardDetectedCheckbox.isChecked = true
 
         val message = WebsocketCommand(CommandType.CARD_DETECTED, "")
-        WebSocketManager.sendMessage(message.encode())
+        Websocket.sendMessage(message.encode())
     }
 
     override fun onConnectSuccess() {
         val sessionId = sessionIdTextBox.text.toString()
         this.log("Websockets", "Connected - sending session id $sessionId")
-        WebSocketManager.sendMessage(sessionId)
-        WebSocketManager.sendMessage(WebsocketCommand(CommandType.PING, "").encode())
+        Websocket.sendMessage(sessionId)
+        Websocket.sendMessage(WebsocketCommand(CommandType.PING, "").encode())
         checkServerConnected()
     }
 
@@ -179,7 +179,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         when (cmd.type) {
             CommandType.PING -> {
                 val pong = WebsocketCommand(CommandType.PONG, "")
-                WebSocketManager.sendMessage(pong.encode())
+                Websocket.sendMessage(pong.encode())
                 checkPeerConnected()
             }
             CommandType.PONG -> {
@@ -214,7 +214,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
                     } catch (e: TagLostException) {
                         // Failure
                         val respobj = WebsocketCommand(CommandType.CARD_LOST, "")
-                        WebSocketManager.sendMessage(respobj.encode())
+                        Websocket.sendMessage(respobj.encode())
                         this.log("NFC", "Connection Lost")
                         card = null
                         cardDetectedCheckbox.isChecked = true
@@ -224,7 +224,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
                     this.log("NFC", "Response from card: $respHex")
 
                     val respObj = WebsocketCommand(CommandType.CARD_RESPONSE, respHex)
-                    WebSocketManager.sendMessage(respObj.encode())
+                    Websocket.sendMessage(respObj.encode())
                 }
             }
             CommandType.CARD_RESPONSE -> {

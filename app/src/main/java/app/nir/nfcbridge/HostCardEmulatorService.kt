@@ -26,7 +26,7 @@ class HostCardEmulatorService : HostApduService() {
         }
         val commandApduHex = commandApdu.toHex()
         Log.d(TAG, "Sending $commandApduHex")
-        WebSocketManager.sendMessage(commandApduHex)
+        Websocket.sendMessage(commandApduHex)
         Log.d(TAG, "Waiting for a response")
 
         val start = System.currentTimeMillis()

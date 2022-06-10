@@ -3,6 +3,7 @@ package app.nir.nfcbridge
 import  android.util.Log
 import okhttp3.*
 import okio.ByteString
+import java.lang.Exception
 import  java.util.concurrent.TimeUnit
 
 /*
@@ -16,92 +17,79 @@ interface MessageListener {
     fun onMessage(text: String?)
 }
 
-object WebSocketManager {
-    private val TAG = WebSocketManager::class.java.simpleName
-    private const val MAX_NUM = 5  // Maximum number of reconnections
-    private const val MILLIS = 5000  // Reconnection interval, milliseconds
+object Websocket {
+    private val TAG = Websocket::class.java.simpleName
+    private const val MAX_RECONNECTS = 5  // Maximum number of reconnections
+    private const val RECONNECT_INTERVAL_MILLIS: Long = 5000
+    private const val WEBSOCKET_TIMEOUT_MILLIS: Long = 5000
     private lateinit var client: OkHttpClient
     private lateinit var request: Request
     private lateinit var messageListener: MessageListener
     private lateinit var mWebSocket: WebSocket
-    private var isConnect = false
-    private var connectNum = 0
+    private var isConnected = false
+    private var numFailedConsecutiveConnections = 0
 
     fun init(url: String, _messageListener: MessageListener) {
         client = OkHttpClient.Builder()
-            .writeTimeout(5, TimeUnit.SECONDS)
-            .readTimeout(5, TimeUnit.SECONDS)
-            .connectTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(WEBSOCKET_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
+            .readTimeout(WEBSOCKET_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
+            .connectTimeout(WEBSOCKET_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)
             .build()
         request = Request.Builder().url(url).build()
         messageListener = _messageListener
     }
 
-    /**
-     * connect
-     */
+
     fun connect() {
-        if (isConnect()) {
+        if (isConnected()) {
             Log.i(TAG, "web socket connected")
             return
         }
         client.newWebSocket(request, createListener())
     }
 
-    /**
-     * Reconnection
-     */
+
     fun reconnect() {
-        if (connectNum <= MAX_NUM) {
+        if (numFailedConsecutiveConnections <= MAX_RECONNECTS) {
             try {
-                Thread.sleep(MILLIS.toLong())
+                Thread.sleep(RECONNECT_INTERVAL_MILLIS.toLong())
                 connect()
-                connectNum++
+                numFailedConsecutiveConnections++
             } catch (e: InterruptedException) {
                 e.printStackTrace()
             }
         } else {
             Log.i(
                 TAG,
-                "reconnect over $MAX_NUM,please check url or network"
+                "failed to connect over $MAX_RECONNECTS times, check url or network"
             )
         }
     }
 
-    /**
-     * Whether it's connected
-     */
-    fun isConnect(): Boolean {
-        return isConnect
+    fun isConnected(): Boolean {
+        return isConnected
     }
 
     /**
-     * send messages
-     *
-     * @param text string
-     * @return boolean
+     * send a text type message
+     * @return whether the message was enqueued successfully
      */
     fun sendMessage(text: String): Boolean {
-        return if (!isConnect()) false else mWebSocket.send(text)
+        return if (!isConnected()) false else mWebSocket.send(text)
     }
 
     /**
-     * send messages
-     *
-     * @param byteString character set
-     * @return boolean
+     * send a binary type message
+     * @return whether the message was enqueued successfully
      */
     fun sendMessage(byteString: ByteString): Boolean {
-        return if (!isConnect()) false else mWebSocket.send(byteString)
+        return if (!isConnected()) false else mWebSocket.send(byteString)
     }
 
-    /**
-     * Close connection
-     */
     fun close() {
-        if (isConnect()) {
+        if (isConnected()) {
             mWebSocket.cancel()
-            mWebSocket.close(1001, "The client actively closes the connection ")
+            mWebSocket.close(1001, "The client actively closed the connection")
         }
     }
 
@@ -114,12 +102,13 @@ object WebSocketManager {
                 super.onOpen(webSocket, response)
                 Log.d(TAG, "open:$response")
                 mWebSocket = webSocket
-                isConnect = response.code() == 101
-                if (!isConnect) {
+                isConnected = response.code() == 101
+                if (!isConnected) {
                     reconnect()
                 } else {
-                    Log.i(TAG, "connect success.")
+                    Log.i(TAG, "connected successfully")
                     messageListener.onConnectSuccess()
+                    numFailedConsecutiveConnections = 0
                 }
             }
 
@@ -130,7 +119,10 @@ object WebSocketManager {
 
             override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
                 super.onMessage(webSocket, bytes)
-                messageListener.onMessage(bytes.base64())
+                //previously did this - very bad since it's ambiguous to receiver
+                //messageListener.onMessage(bytes.base64())
+                //just throwing an exception for now
+                throw Exception("received unsupported data type")
             }
 
             override fun onClosing(
@@ -139,7 +131,8 @@ object WebSocketManager {
                 reason: String
             ) {
                 super.onClosing(webSocket, code, reason)
-                isConnect = false
+                isConnected = false
+                // TODO: report reason to client
                 messageListener.onClose()
             }
 
@@ -149,7 +142,8 @@ object WebSocketManager {
                 reason: String
             ) {
                 super.onClosed(webSocket, code, reason)
-                isConnect = false
+                isConnected = false
+                // TODO: report reason to client
                 messageListener.onClose()
             }
 
@@ -162,14 +156,15 @@ object WebSocketManager {
                 if (response != null) {
                     Log.i(
                         TAG,
-                        "connect failed：" + response.message()
+                        "connect failed message：" + response.message()
                     )
                 }
                 Log.i(
                     TAG,
                     "connect failed throwable：" + t.message
                 )
-                isConnect = false
+                isConnected = false
+                // TODO: report failure response (if it exists) to client
                 messageListener.onConnectFailed()
                 reconnect()
             }
