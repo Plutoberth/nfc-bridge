@@ -13,16 +13,19 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageListener {
-    private var nfcAdapter: NfcAdapter? = null
-    private var nfcTextView: TextView? = null
-    private var ipAddrTextBox: EditText? = null
-    @SuppressLint("UseSwitchCompatOrMaterialCode")
-    private var hceSwitch: Switch? = null
-    private var connectButton: Button? = null
-    private var cardDetectedCheckbox: CheckBox? = null
-    private var peerConnectedCheckbox: CheckBox? = null
-    private var serverConnectedCheckbox: CheckBox? = null
+    private lateinit var nfcAdapter: NfcAdapter
     private var card: IsoDep? = null
+
+    private lateinit var nfcTextView: TextView
+    private lateinit var ipAddrTextBox: EditText
+    private lateinit var sessionIdTextBox: EditText
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
+    private lateinit var connectButton: Button
+    private lateinit var hceSwitch: Switch
+    private lateinit var cardDetectedCheckbox: CheckBox
+    private lateinit var peerConnectedCheckbox: CheckBox
+    private lateinit var serverConnectedCheckbox: CheckBox
+
 
     private val DEFAULT_IP_ADDR = "85.65.157.57";
 
@@ -37,16 +40,17 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         setContentView(R.layout.activity_main)
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
         nfcTextView = findViewById(R.id.nfcLog)
-        nfcTextView!!.movementMethod = ScrollingMovementMethod()
+        nfcTextView.movementMethod = ScrollingMovementMethod()
         ipAddrTextBox = findViewById(R.id.serverIP)
+        sessionIdTextBox = findViewById(R.id.sessionID)
 
         connectButton = findViewById(R.id.connectWebsocketButton)
-        connectButton!!.setOnClickListener {
+        connectButton.setOnClickListener {
             connectWebsocket()
         }
 
         hceSwitch = findViewById(R.id.hceSwitch)
-        hceSwitch!!.setOnCheckedChangeListener { _, isChecked ->
+        hceSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 disableNfcReader()
             } else {
@@ -57,51 +61,49 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         cardDetectedCheckbox = findViewById(R.id.cardDetectedCheckbox)
         peerConnectedCheckbox = findViewById(R.id.peerConnectedCheckbox)
         serverConnectedCheckbox = findViewById(R.id.serverConnectedCheckbox)
-        ipAddrTextBox!!.setText(DEFAULT_IP_ADDR)
-
-        connectWebsocket()
+        ipAddrTextBox.setText(DEFAULT_IP_ADDR)
     }
 
     private fun checkServerConnected() {
         runOnUiThread {
-            serverConnectedCheckbox!!.isChecked = true
-            peerConnectedCheckbox!!.isEnabled = true
+            serverConnectedCheckbox.isChecked = true
+            peerConnectedCheckbox.isEnabled = true
         }
     }
 
     private fun uncheckServerConnected() {
         runOnUiThread {
-            serverConnectedCheckbox!!.isChecked = false
-            peerConnectedCheckbox!!.isEnabled = false
+            serverConnectedCheckbox.isChecked = false
+            peerConnectedCheckbox.isEnabled = false
             uncheckPeerConnected()
         }
     }
 
     private fun checkPeerConnected() {
         runOnUiThread {
-            peerConnectedCheckbox!!.isChecked = true
+            peerConnectedCheckbox.isChecked = true
         }
     }
 
     private fun uncheckPeerConnected() {
         runOnUiThread {
-            peerConnectedCheckbox!!.isChecked = false
+            peerConnectedCheckbox.isChecked = false
         }
     }
 
     private fun connectWebsocket() {
-        val server =  "ws://${ipAddrTextBox!!.text}:8765"
+        val server =  "ws://${ipAddrTextBox.text}:8765"
         WebSocketManager.init(server, this)
         WebSocketManager.close()
         WebSocketManager.connect()
     }
 
     private fun isHCE(): Boolean {
-        return this.hceSwitch!!.isChecked
+        return this.hceSwitch.isChecked
     }
 
     private fun enableNfcReader() {
-        nfcAdapter!!.enableReaderMode(this, this,
+        nfcAdapter.enableReaderMode(this, this,
             NfcAdapter.FLAG_READER_NFC_A or
                     NfcAdapter.FLAG_READER_NFC_B or
                     NfcAdapter.FLAG_READER_NFC_F or
@@ -109,14 +111,14 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
                     NfcAdapter.FLAG_READER_NFC_BARCODE or
                     NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
             null)
-        cardDetectedCheckbox!!.isEnabled = true
+        cardDetectedCheckbox.isEnabled = true
     }
 
     private fun disableNfcReader() {
-        nfcAdapter!!.disableReaderMode(this)
+        nfcAdapter.disableReaderMode(this)
         card = null
-        cardDetectedCheckbox!!.isChecked = false
-        cardDetectedCheckbox!!.isEnabled = false
+        cardDetectedCheckbox.isChecked = false
+        cardDetectedCheckbox.isEnabled = false
     }
 
     override fun onResume() {
@@ -139,14 +141,16 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         val isoDep = IsoDep.get(tag)
         isoDep.connect()
         card = isoDep
-        cardDetectedCheckbox!!.isChecked = true
+        cardDetectedCheckbox.isChecked = true
 
         val message = WebsocketCommand(CommandType.CARD_DETECTED, "")
         WebSocketManager.sendMessage(message.encode())
     }
 
     override fun onConnectSuccess() {
-        this.log("Websockets", "Connected")
+        val sessionId = sessionIdTextBox.text.toString()
+        this.log("Websockets", "Connected - sending session id $sessionId")
+        WebSocketManager.sendMessage(sessionId)
         //WebSocketManager.sendMessage(WebsocketCommand(CommandType.PING, "").encode())
         checkServerConnected()
     }
@@ -170,21 +174,21 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
         val cmd = decodeWebsocketCommand(text)
 
         this.log("Websockets", "received command ${cmd.type}, data: ${cmd.data}")
-        val messageraw = text.fromHex();
+        val messageraw = text.fromHex()
 
         when (cmd.type) {
             CommandType.PING -> {
             }
             CommandType.CARD_DETECTED -> {
                 if (isHCE()) {
-                    cardDetectedCheckbox!!.isChecked = true
+                    cardDetectedCheckbox.isChecked = true
                 } else {
                     this.log("Protocol", "both peers are cardholders")
                 }
             }
             CommandType.CARD_LOST -> {
                 if (isHCE()) {
-                    cardDetectedCheckbox!!.isChecked = false
+                    cardDetectedCheckbox.isChecked = false
                 } else {
                     this.log("Protocol", "both peers are cardholders")
                 }
@@ -198,16 +202,16 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
                         return
                     }
 
-                    val resp: ByteArray;
+                    val resp: ByteArray
                     try {
                         resp = this.card!!.transceive(messageraw)
                     } catch (e: TagLostException) {
                         // Failure
-                        val resp = WebsocketCommand(CommandType.CARD_LOST, "")
-                        WebSocketManager.sendMessage(resp.encode())
+                        val respobj = WebsocketCommand(CommandType.CARD_LOST, "")
+                        WebSocketManager.sendMessage(respobj.encode())
                         this.log("NFC", "Connection Lost")
-                        card = null;
-                        cardDetectedCheckbox!!.isChecked = true
+                        card = null
+                        cardDetectedCheckbox.isChecked = true
                         return
                     }
                     val respHex = resp.toHex()
@@ -230,7 +234,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback, MessageList
     fun log(tag: String, text: String) {
         Log.d("Bridge/$tag", text)
         runOnUiThread {
-            nfcTextView?.append("$tag: $text\n")
+            nfcTextView.append("$tag: $text\n")
         }
     }
 }
